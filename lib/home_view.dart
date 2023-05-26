@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_todo_app/cart_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_todo_app/bloc/item_bloc.dart';
+import 'package:flutter_todo_app/bloc/item_event.dart';
+import 'package:flutter_todo_app/bloc/item_state.dart';
+import 'package:flutter_todo_app/model/item.dart';
 
 class HomeView extends StatelessWidget {
   HomeView({super.key});
@@ -9,7 +12,8 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<CartModel>(context, listen: false);
+    final bloc = BlocProvider.of<ItemBloc>(context);
+
     return Column(
       children: [
         Padding(
@@ -18,19 +22,25 @@ class HomeView extends StatelessWidget {
             key: _formKey,
             child: TextFormField(
               validator: (value) {
-                if (provider.items.contains(value)) {
-                  return 'Já foi adicionado esse valor';
+                final currentItem = Item(name: value!);
+                if (currentItem.name.trim().isEmpty) {
+                  return 'You need to enter a valid value!';
+                }
+                if (bloc.state.items.contains(currentItem)) {
+                  return 'Already added!';
                 }
                 return null;
               },
               onFieldSubmitted: (value) {
+                final currentItem = Item(name: value);
                 if (_formKey.currentState!.validate()) {
-                  provider.add(value);
+                  bloc.add(AddItemEvent(item: currentItem));
                   value = '';
                 }
               },
               decoration: const InputDecoration(
-                  border: OutlineInputBorder(), labelText: 'Add item'),
+                  border: OutlineInputBorder(),
+                  labelText: 'Add item pressing Enter'),
             ),
           ),
         ),
@@ -50,31 +60,38 @@ class TodoListWidget extends StatefulWidget {
 class _TodoListWidgetState extends State<TodoListWidget> {
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<CartModel>(context, listen: true);
-    return ListView.separated(
-      separatorBuilder: (BuildContext context, int index) =>
-          const Divider(color: Colors.transparent),
-      padding: const EdgeInsets.all(20),
-      itemCount: provider.items.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Consumer<CartModel>(builder: (context, cart, child) {
-          return ListTile(
-              title: Text(cart.items[index]),
-              tileColor: Colors.blueGrey,
-              trailing: Wrap(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => provider.edit(cart.items[index], 'Banana'),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => provider.remove(cart.items[index]),
-                  ),
-                ],
-              ));
-        });
-      },
-    );
+    final bloc = BlocProvider.of<ItemBloc>(context);
+    return BlocBuilder<ItemBloc, ItemState>(builder: (context, state) {
+      if (state is ItemInitialState) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (state is ItemSucessState) {
+        final items = state.items;
+        return ListView.separated(
+          separatorBuilder: (BuildContext context, int index) =>
+              const Divider(color: Colors.transparent),
+          padding: const EdgeInsets.all(20),
+          itemCount: items.length,
+          itemBuilder: (BuildContext context, int index) {
+            final currentItem = items[index];
+            return ListTile(
+                title: Text(currentItem.name),
+                tileColor: Colors.blueGrey,
+                trailing: Wrap(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () =>
+                          bloc.add(RemoveItemEvent(item: currentItem)),
+                    ),
+                  ],
+                ));
+          },
+        );
+      }
+
+      return Container();
+    });
   }
 }

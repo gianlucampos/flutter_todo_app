@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_todo_app/cart_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_todo_app/bloc/item_bloc.dart';
+import 'package:flutter_todo_app/bloc/item_event.dart';
 import 'package:flutter_todo_app/home_view.dart';
-import 'package:provider/provider.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => CartModel(),
-      child: const MainApp(),
-    ),
-  );
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -20,7 +16,10 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: Scaffold(body: HomeView()),
+      home: BlocProvider(
+        create: (context) => ItemBloc()..add(LoadItemEvent()),
+        child: Scaffold(body: HomeView()),
+      ),
     );
   }
 }
