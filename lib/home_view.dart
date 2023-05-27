@@ -40,17 +40,12 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class TodoListWidget extends StatefulWidget {
+class TodoListWidget extends StatelessWidget {
   const TodoListWidget({super.key});
 
   @override
-  State<TodoListWidget> createState() => _TodoListWidgetState();
-}
-
-class _TodoListWidgetState extends State<TodoListWidget> {
-  @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<CartModel>(context, listen: true);
+    final provider = Provider.of<CartModel>(context, listen: true);
     return ListView.separated(
       separatorBuilder: (BuildContext context, int index) =>
           const Divider(color: Colors.transparent),
@@ -63,10 +58,6 @@ class _TodoListWidgetState extends State<TodoListWidget> {
               tileColor: Colors.blueGrey,
               trailing: Wrap(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => provider.edit(cart.items[index], 'Banana'),
-                  ),
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () => provider.remove(cart.items[index]),
