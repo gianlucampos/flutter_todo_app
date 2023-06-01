@@ -50,14 +50,9 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class TodoListWidget extends StatefulWidget {
+class TodoListWidget extends StatelessWidget {
   const TodoListWidget({super.key});
 
-  @override
-  State<TodoListWidget> createState() => _TodoListWidgetState();
-}
-
-class _TodoListWidgetState extends State<TodoListWidget> {
   @override
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of<ItemBloc>(context);
@@ -90,7 +85,6 @@ class _TodoListWidgetState extends State<TodoListWidget> {
           },
         );
       }
-
       return Container();
     });
   }
