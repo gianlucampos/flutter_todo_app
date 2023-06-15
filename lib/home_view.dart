@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_todo_app/cart_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_todo_app/stores/todo_store.dart';
+
+final TodoStore todoStore = TodoStore();
 
 class HomeView extends StatelessWidget {
   HomeView({super.key});
@@ -9,7 +11,6 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<CartModel>(context, listen: false);
     return Column(
       children: [
         Padding(
@@ -18,14 +19,14 @@ class HomeView extends StatelessWidget {
             key: _formKey,
             child: TextFormField(
               validator: (value) {
-                if (provider.items.contains(value)) {
+                if (todoStore.items.contains(value)) {
                   return 'Já foi adicionado esse valor';
                 }
                 return null;
               },
               onFieldSubmitted: (value) {
                 if (_formKey.currentState!.validate()) {
-                  provider.add(value);
+                  todoStore.addItem((value));
                   value = '';
                 }
               },
@@ -45,27 +46,32 @@ class TodoListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CartModel>(context, listen: true);
-    return ListView.separated(
-      separatorBuilder: (BuildContext context, int index) =>
-          const Divider(color: Colors.transparent),
-      padding: const EdgeInsets.all(20),
-      itemCount: provider.items.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Consumer<CartModel>(builder: (context, cart, child) {
-          return ListTile(
-              title: Text(cart.items[index]),
-              tileColor: Colors.blueGrey,
-              trailing: Wrap(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => provider.remove(cart.items[index]),
-                  ),
-                ],
-              ));
-        });
+    return Observer(
+      builder: (_) {
+        return ListView.separated(
+            separatorBuilder: (BuildContext context, int index) =>
+                const Divider(color: Colors.transparent),
+            padding: const EdgeInsets.all(20),
+            itemCount: todoStore.items.length,
+            itemBuilder: (BuildContext context, int index) {
+              return _buildListTile(todoStore.items[index]);
+            });
       },
+    );
+  }
+
+  ListTile _buildListTile(String item) {
+    return ListTile(
+      title: Text(item),
+      tileColor: Colors.blueGrey,
+      trailing: Wrap(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () => todoStore.removeItem(item),
+          ),
+        ],
+      ),
     );
   }
 }
